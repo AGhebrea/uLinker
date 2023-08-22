@@ -7,6 +7,7 @@ enum type_token_t{
 	TOK_SYMBOL,
 	TOK_NUMBER,
 	TOK_HEX,
+	TOK_COMMENT,
 };
 
 struct token_t{

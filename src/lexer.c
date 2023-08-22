@@ -109,6 +109,31 @@ void getNumber(struct lexer_state *lexer, struct token_t *token)
 	return;
 }
 
+void getLine(struct lexer_state *lexer, struct token_t *token)
+{
+	consume_token(lexer);
+	token->content_len += 1;
+	while(CURRENT_CHAR(lexer) != '\n'){
+		consume_token(lexer);
+		token->content_len += 1;
+	}
+
+	return;
+}
+
+void checkInvalid(struct lexer_state *lexer, struct token_t *token)
+{
+	if(!isspace(CURRENT_CHAR(lexer)) && CURRENT_CHAR(lexer) != '\0'){
+		// (!!!) see #NOTE(0)
+		while(!isspace(CURRENT_CHAR(lexer))){
+			consume_token(lexer);
+			token->content_len += 1; 
+		}
+		token->type = TOK_INVALID;
+	}
+	return;
+}
+
 void token_next (struct lexer_state *lexer, struct token_t *token)
 {
 	trim_left(lexer);
@@ -123,6 +148,11 @@ void token_next (struct lexer_state *lexer, struct token_t *token)
 		return;
 	}
 
+	if(CURRENT_CHAR(lexer) == '#'){
+		getLine(lexer, token);
+		token->type = TOK_COMMENT;
+	}
+
 	if(isalpha(CURRENT_CHAR(lexer)) || CURRENT_CHAR(lexer) == '.'){
 		getSymbol(lexer, token);
 
@@ -130,19 +160,7 @@ void token_next (struct lexer_state *lexer, struct token_t *token)
 		getNumber(lexer, token);
 	}
 
-	// display_token(token);
-
-	//
-	// INVALID
-	//
-	if(!isspace(CURRENT_CHAR(lexer))){
-		// (!!!) see #NOTE(0)
-		while(!isspace(CURRENT_CHAR(lexer))){
-			consume_token(lexer);
-			token->content_len += 1; 
-		}
-		token->type = TOK_INVALID;
-	}
+	checkInvalid(lexer, token);
 
 	return;
 }
@@ -165,6 +183,9 @@ void display_token (struct token_t *token)
 		break;
 	case TOK_HEX:
 		printf("\ntype [%s]", "TOK_HEX");
+		break;
+	case TOK_COMMENT:
+		printf("\ntype [%s]", "TOK_COMMENT");
 		break;
 	default:
 		UNREACHABLE;
