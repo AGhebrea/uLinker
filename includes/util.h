@@ -14,6 +14,6 @@ struct token_list_t{
 };
 
 void append_token(struct token_list_t *, struct token_t *);
-struct token_list_t **init_list(void);
+struct token_list_t *init_list(void);
 
 #endif // _UTIL_H_

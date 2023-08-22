@@ -29,6 +29,6 @@ struct lexer_state{
 void init_lexer(char *, size_t);
 void fini_lexer(void);
 void display_token(struct token_t*);
-struct token_t* token_next(void);
+void token_next(struct token_t*);
 
 #endif // _LEXER_H_

@@ -13,7 +13,7 @@ int main()
 	struct token_t *tmp;
 	struct token_list_t *token_list;
 
-	// token_list = init_list();
+	token_list = init_list();
 
 	char test_string1[] = 
 		"     1INVALID_TOKEN abc\n"
@@ -27,15 +27,24 @@ int main()
 
 	init_lexer(test_string1, strlen(test_string1));
 
+	/*
+		a big chunk of memory should be allocated all
+		at once but this is sufficient for now
+	*/
 	do{
-		tmp = token_next();
-		// append_token(tmp);
+		tmp = (struct token_t *)calloc(1, sizeof(struct token_t));
+		token_next(tmp);
+		append_token(token_list, tmp);
 	} while(tmp->type != TOK_NULL);
 
-	fini_lexer();
+	for(size_t i = 0; i < token_list->size; ++i){
+		display_token(token_list->content[i]);
+	}
 
 	// init_parser();
 	// init_linker();
+
+	fini_lexer();
 
 	return 0;
 }

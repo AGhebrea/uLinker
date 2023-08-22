@@ -71,10 +71,8 @@ void init_lexer (char *content, size_t content_len)
 	return;
 }
 
-struct token_t* token_next (void)
+void token_next (struct token_t *token)
 {
-	struct token_t *token = (struct token_t *)calloc(1, sizeof(struct token_t));
-
 	trim_left();
 
 	token->content = &CURRENT_CHAR;
@@ -83,7 +81,7 @@ struct token_t* token_next (void)
 
 	if(isend()){
 		token->type = TOK_NULL;
-		return token;
+		return;
 	}
 
 	if(isalpha(CURRENT_CHAR)){
@@ -122,7 +120,7 @@ struct token_t* token_next (void)
 		token->type = TOK_INVALID;
 	}
 
-	return token;
+	return;
 }
 
 void display_token (struct token_t *token)
@@ -151,6 +149,7 @@ void display_token (struct token_t *token)
 void fini_lexer (void)
 {
 	// (!!!) check children allocated if that is the case.
+	// we should be careful if we want to free the 'content' field
 	if(lexer != NULL){
 		free(lexer);
 	}
