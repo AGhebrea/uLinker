@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -8,7 +9,19 @@
 #include "util.h"
 #include "macros.h"
 
+void PoC_lexer(void);
+
 int main()
+{
+	struct parser_t *parser = init_parser("./test/test.object");
+	parse(parser);
+
+	// PoC_lexer();
+
+	return 0;
+}
+
+void PoC_lexer(void)
 {
 	struct token_t *tmp;
 	struct token_list_t *token_list;
@@ -25,7 +38,7 @@ int main()
 		"\n"
 	;
 
-	init_lexer(test_string1, strlen(test_string1));
+	struct lexer_state *lexer = init_lexer(test_string1, strlen(test_string1));
 
 	/*
 		a big chunk of memory should be allocated all
@@ -33,7 +46,7 @@ int main()
 	*/
 	do{
 		tmp = (struct token_t *)calloc(1, sizeof(struct token_t));
-		token_next(tmp);
+		token_next(lexer, tmp);
 		append_token(token_list, tmp);
 	} while(tmp->type != TOK_NULL);
 
@@ -41,10 +54,5 @@ int main()
 		display_token(token_list->content[i]);
 	}
 
-	// init_parser();
-	// init_linker();
-
-	fini_lexer();
-
-	return 0;
+	fini_lexer(lexer);
 }

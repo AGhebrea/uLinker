@@ -6,7 +6,7 @@ enum type_token_t{
 	TOK_NULL = 0,
 	TOK_SYMBOL,
 	TOK_NUMBER,
-
+	TOK_HEX,
 };
 
 struct token_t{
@@ -15,7 +15,6 @@ struct token_t{
 	size_t content_len;
 	int line;
 	int col;
-	char *filename;
 };
 
 struct lexer_state{
@@ -26,9 +25,9 @@ struct lexer_state{
 	int cursor;
 };
 
-void init_lexer(char *, size_t);
-void fini_lexer(void);
+struct lexer_state* init_lexer(char *, size_t);
+void fini_lexer(struct lexer_state*);
 void display_token(struct token_t*);
-void token_next(struct token_t*);
+void token_next(struct lexer_state *, struct token_t*);
 
 #endif // _LEXER_H_

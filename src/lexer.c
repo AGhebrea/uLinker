@@ -7,11 +7,11 @@
 #include "macros.h"
 #include "lexer.h"
 
-#define CURRENT_CHAR lexer->content[lexer->cursor]
+#define CURRENT_CHAR(lexer) lexer->content[lexer->cursor]
 
-struct lexer_state *lexer;
+// struct lexer_state *lexer;
 
-int isend()
+int isend(struct lexer_state * lexer)
 {
 	if(lexer->cursor >= lexer->content_len) return true;
 
@@ -19,7 +19,7 @@ int isend()
 		think if you actually care about this.
 		you might if it were not a toy project
 	)*/
-	if(CURRENT_CHAR == EOF || CURRENT_CHAR == '\0'){
+	if(CURRENT_CHAR(lexer) == EOF || CURRENT_CHAR(lexer) == '\0'){
 		if(lexer->cursor < lexer->content_len){
 			DEBUG_INFO_FMT_STR(
 				(lexer->cursor < lexer->content_len),
@@ -33,10 +33,10 @@ int isend()
 	return false;
 }
 
-char consume_token ()
+char consume_token (struct lexer_state *lexer)
 {
 	char ch;
-	ch = CURRENT_CHAR;
+	ch = CURRENT_CHAR(lexer);
 
 	if(lexer->cursor >= lexer->content_len){
 		return 0;
@@ -50,71 +50,95 @@ char consume_token ()
 	return ch;
 }
 
-void trim_left ()
+void trim_left (struct lexer_state *lexer)
 {
-	while(isspace(CURRENT_CHAR)){
-		consume_token();
+	while(isspace(CURRENT_CHAR(lexer))){
+		consume_token(lexer);
 	}
 	return;
 }
 
-void init_lexer (char *content, size_t content_len)
+struct lexer_state* init_lexer (char *content, size_t content_len)
 {
-	if(lexer == NULL){
-		lexer = (struct lexer_state*)calloc(1, sizeof(struct lexer_state));
-	}
+	struct lexer_state *lexer;
+
+	lexer = (struct lexer_state*)calloc(1, sizeof(struct lexer_state));
+
 	lexer->content = content;
 	lexer->content_len = content_len;
 	lexer->cursor = 0;
 	lexer->line = 0;
 	lexer->bol = 0;
+	
+	return lexer;
+}
+
+void getSymbol(struct lexer_state *lexer, struct token_t *token)
+{
+	consume_token(lexer);
+	token->content_len += 1;
+	while(isalnum(CURRENT_CHAR(lexer)) || ispunct(CURRENT_CHAR(lexer)) ){
+		consume_token(lexer);
+		token->content_len += 1;
+	}
+	token->type = TOK_SYMBOL;
+
 	return;
 }
 
-void token_next (struct token_t *token)
+void getNumber(struct lexer_state *lexer, struct token_t *token)
 {
-	trim_left();
-
-	token->content = &CURRENT_CHAR;
-	token->line = lexer->line;
-	token->col = lexer->cursor - lexer->bol;
-
-	if(isend()){
-		token->type = TOK_NULL;
-		return;
-	}
-
-	if(isalpha(CURRENT_CHAR)){
-		//
-		// SYMBOL
-		//
-		consume_token();
+	consume_token(lexer);
+	token->content_len += 1;
+	if(CURRENT_CHAR(lexer) == 'x' || CURRENT_CHAR(lexer) == 'X'){
+		consume_token(lexer);
 		token->content_len += 1;
-		while(isalnum(CURRENT_CHAR)){
-			consume_token();
+		while(isxdigit(CURRENT_CHAR(lexer))){
+			consume_token(lexer);
 			token->content_len += 1;
 		}
-		token->type = TOK_SYMBOL;
-	}else if(isdigit(CURRENT_CHAR)){
-		//
-		// NUMBER
-		//
-		consume_token();
-		token->content_len += 1;
-		while(isdigit(CURRENT_CHAR)){
-			consume_token();
+		token->type = TOK_HEX;
+	}else{
+		while(isdigit(CURRENT_CHAR(lexer))){
+			consume_token(lexer);
 			token->content_len += 1;
 		}
 		token->type = TOK_NUMBER;
 	}
 
+	return;
+}
+
+void token_next (struct lexer_state *lexer, struct token_t *token)
+{
+	trim_left(lexer);
+
+	token->content = &CURRENT_CHAR(lexer);
+	token->line = lexer->line;
+	token->col = lexer->cursor - lexer->bol;
+	token->content_len = 0;
+
+	if(isend(lexer)){
+		token->type = TOK_NULL;
+		return;
+	}
+
+	if(isalpha(CURRENT_CHAR(lexer)) || CURRENT_CHAR(lexer) == '.'){
+		getSymbol(lexer, token);
+
+	}else if(isdigit(CURRENT_CHAR(lexer))){
+		getNumber(lexer, token);
+	}
+
+	// display_token(token);
+
 	//
 	// INVALID
 	//
-	if(!isspace(CURRENT_CHAR)){
+	if(!isspace(CURRENT_CHAR(lexer))){
 		// (!!!) see #NOTE(0)
-		while(!isspace(CURRENT_CHAR)){
-			consume_token();
+		while(!isspace(CURRENT_CHAR(lexer))){
+			consume_token(lexer);
 			token->content_len += 1; 
 		}
 		token->type = TOK_INVALID;
@@ -139,6 +163,9 @@ void display_token (struct token_t *token)
 	case TOK_NUMBER:
 		printf("\ntype [%s]", "TOK_NUMBER");
 		break;
+	case TOK_HEX:
+		printf("\ntype [%s]", "TOK_HEX");
+		break;
 	default:
 		UNREACHABLE;
 	}
@@ -146,7 +173,7 @@ void display_token (struct token_t *token)
 	printf("\n");
 }
 
-void fini_lexer (void)
+void fini_lexer (struct lexer_state *lexer)
 {
 	// (!!!) check children allocated if that is the case.
 	// we should be careful if we want to free the 'content' field

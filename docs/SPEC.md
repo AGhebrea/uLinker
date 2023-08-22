@@ -27,9 +27,9 @@ readable, W for writable, and P for present in the object file.
 a.out like file would be:
 
 ```
-.text 1000 2500 RP
-.data 4000 C00 RWP
-.bss 5000 1900 RW
+.text 0x1000 0x2500 RP
+.data 0x4000 0xC00 RWP
+.bss 0x5000 0x1900 RW
 ```
 
 Segments are numbered in the order their definitions appear, with the first  
