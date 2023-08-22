@@ -4,7 +4,18 @@
 #ifndef _PARSER_H_
 #define _PARSER_H_
 
-#include "linker.h"
+#define MAGIC_NUMBER "LINK"
+
+enum PARSE_STAGES{
+	ERROR = -1,
+	MAGIC = 0,
+	META,
+	SEGMENTS,
+	SYMBOLS,
+	RELS,
+	DATA,
+	END
+};
 
 struct parser_t{
 	char *filename;

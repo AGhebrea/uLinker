@@ -9,9 +9,8 @@
 
 #define CURRENT_CHAR(lexer) lexer->content[lexer->cursor]
 
-// struct lexer_state *lexer;
 
-int isend(struct lexer_state * lexer)
+int isend (struct lexer_state * lexer)
 {
 	if(lexer->cursor >= lexer->content_len) return true;
 
@@ -73,7 +72,15 @@ struct lexer_state* init_lexer (char *content, size_t content_len)
 	return lexer;
 }
 
-void getSymbol(struct lexer_state *lexer, struct token_t *token)
+void init_token(struct lexer_state *lexer, struct token_t *token)
+{
+	token->content = &CURRENT_CHAR(lexer);
+	token->line = lexer->line;
+	token->col = lexer->cursor - lexer->bol;
+	token->content_len = 0;
+}
+
+void trySymbol(struct lexer_state *lexer, struct token_t *token)
 {
 	consume_token(lexer);
 	token->content_len += 1;
@@ -86,7 +93,7 @@ void getSymbol(struct lexer_state *lexer, struct token_t *token)
 	return;
 }
 
-void getNumber(struct lexer_state *lexer, struct token_t *token)
+void tryNumber(struct lexer_state *lexer, struct token_t *token)
 {
 	consume_token(lexer);
 	token->content_len += 1;
@@ -113,7 +120,7 @@ void getLine(struct lexer_state *lexer, struct token_t *token)
 {
 	consume_token(lexer);
 	token->content_len += 1;
-	while(CURRENT_CHAR(lexer) != '\n'){
+	while(CURRENT_CHAR(lexer) != '\n' && CURRENT_CHAR(lexer) != '\0' && CURRENT_CHAR(lexer) != EOF){
 		consume_token(lexer);
 		token->content_len += 1;
 	}
@@ -134,14 +141,13 @@ void checkInvalid(struct lexer_state *lexer, struct token_t *token)
 	return;
 }
 
-void token_next (struct lexer_state *lexer, struct token_t *token)
+void token_next (struct lexer_state *lexer, struct token_t *token, int retComment)
 {
+	// TODO: ?
+token_next_start_label:
 	trim_left(lexer);
 
-	token->content = &CURRENT_CHAR(lexer);
-	token->line = lexer->line;
-	token->col = lexer->cursor - lexer->bol;
-	token->content_len = 0;
+	init_token(lexer, token);
 
 	if(isend(lexer)){
 		token->type = TOK_NULL;
@@ -151,16 +157,96 @@ void token_next (struct lexer_state *lexer, struct token_t *token)
 	if(CURRENT_CHAR(lexer) == '#'){
 		getLine(lexer, token);
 		token->type = TOK_COMMENT;
-	}
+		if(retComment == 0){
+			goto token_next_start_label;
+		}
 
-	if(isalpha(CURRENT_CHAR(lexer)) || CURRENT_CHAR(lexer) == '.'){
-		getSymbol(lexer, token);
+	}else if(isalpha(CURRENT_CHAR(lexer)) || CURRENT_CHAR(lexer) == '.'){
+		trySymbol(lexer, token);
 
 	}else if(isdigit(CURRENT_CHAR(lexer))){
-		getNumber(lexer, token);
+		tryNumber(lexer, token);
 	}
 
 	checkInvalid(lexer, token);
+
+	token->content[token->content_len] = '\0';
+	// HOTFIX
+	lexer->cursor += 1;
+
+	return;
+}
+
+void discardComments(struct lexer_state *lexer)
+{
+	while(CURRENT_CHAR (lexer) == '#'){
+		while(CURRENT_CHAR(lexer) != '\n' && CURRENT_CHAR(lexer) != '\0' && CURRENT_CHAR(lexer) != EOF){
+			consume_token(lexer);
+		}
+	}
+
+	return;
+}
+
+void discardLine(struct lexer_state *lexer)
+{
+	while(CURRENT_CHAR(lexer) != '\n' && CURRENT_CHAR(lexer) != '\0' && CURRENT_CHAR(lexer) != EOF){
+		consume_token(lexer);
+	}
+}
+
+// TODO: remove duplicate code if possible
+// TODO: there is a bug, this does not ignore comments
+void getSymbol(struct lexer_state *lexer, struct token_t *token)
+{
+	trim_left(lexer);
+	discardComments(lexer);
+
+	init_token(lexer, token);
+
+	if(isalpha(CURRENT_CHAR(lexer)) || CURRENT_CHAR(lexer) == '.'){
+		trySymbol(lexer, token);
+	}
+
+	checkInvalid(lexer, token);
+
+	token->content[token->content_len] = '\0';
+	// HOTFIX
+	lexer->cursor += 1;
+
+	if(token->type == TOK_INVALID){
+		printf("\nINVALID TOKEN: a token of type TOK_SYMBOL was expected");
+		display_token(token);
+		exit(1);
+	}
+
+	return;
+}
+
+// TODO: remove duplicate code if possible
+// TODO: there is a bug, this does not ignore comments
+void getNumber(struct lexer_state *lexer, struct token_t *token)
+{
+	trim_left(lexer);
+	discardComments(lexer);
+
+	init_token(lexer, token);
+
+	if(isdigit(CURRENT_CHAR(lexer))){
+		tryNumber(lexer, token);
+	}
+
+	checkInvalid(lexer, token);
+
+	token->content[token->content_len] = '\0';
+	// HOTFIX
+	lexer->cursor += 1;
+
+	if(token->type == TOK_INVALID){
+		printf("\nINVALID TOKEN: a token of type TOK_NUMBER was expected");
+		display_token(token);
+		exit(1);
+	}
 
 	return;
 }

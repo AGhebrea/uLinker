@@ -5,12 +5,17 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "lexer.h"
+#include "linker.h"
 #include "parser.h"
 #include "macros.h"
 
 char *current_filename;
+
+extern struct linker_t *linker;
 
 struct parser_t* init_parser(char *filename)
 {
@@ -30,9 +35,84 @@ struct parser_t* init_parser(char *filename)
 	return parser;
 }
 
+void raiseError(char *s)
+{
+	printf("\n%s", s);
+	exit(1);
+}
+
 void parseMagic(struct lexer_state *lexer)
 {
-	
+	struct token_t token;
+	token_next(lexer, &token, RETURN_COMMENT_FALSE);
+
+	if(strncmp(token.content, MAGIC_NUMBER , token.content_len)){
+		raiseError("\nNo magic number found at start of file");
+	}
+
+	return;
+}
+
+// BUG:
+void parseMeta(struct lexer_state *lexer)
+{
+	struct token_t token;
+
+	getNumber(lexer, &token);
+	linker->nr_segs = atoi(token.content);
+	init_linker_segments();
+
+	getNumber(lexer, &token);
+	linker->nr_syms = atoi(token.content);
+
+	getNumber(lexer, &token);
+	linker->nr_rels = atoi(token.content);
+
+	return;
+}
+
+void parseSegments(struct lexer_state *lexer)
+{
+	struct token_t token;
+
+	for(size_t i = 0; i < linker->nr_segs; ++i){
+		getSymbol(lexer, &token);
+		linker->segments[i].name = (char *)malloc(token.content_len * sizeof(char));
+		strncpy(linker->segments[i].name, token.content, token.content_len);
+
+		getNumber(lexer, &token);
+		linker->segments[i].address = strtol(token.content, NULL, 16);
+
+		getNumber(lexer, &token);
+		linker->segments[i].offset = strtol(token.content, NULL, 16);
+
+		getSymbol(lexer, &token);
+		strncpy(linker->segments[i].permissions, token.content, token.content_len);
+		
+		// todo: fix this bug
+		// it's not from the discardLine function but
+		// if the line actually ends after the last consumed character then we basically
+		// delete a line
+		// discardLine(lexer);
+	}
+
+	return;
+}
+
+// TODO: the rest
+void parseSymbols(struct lexer_state *lexer)
+{
+
+}
+
+void parseRels(struct lexer_state *lexer)
+{
+
+}
+
+void parseData(struct lexer_state *lexer)
+{
+
 }
 
 // see #NOTE(0)
@@ -65,9 +145,51 @@ size_t wrap_fread(char *buffer, size_t size, size_t nmemb, FILE *fd)
 	return ret_size;
 }
 
+int tryParse(struct lexer_state *lexer, int stage)
+{
+	switch(stage){
+	case MAGIC:
+		parseMagic(lexer);
+		break;
+	
+	case META:
+		parseMeta(lexer);
+		break;
+	
+	case SEGMENTS:
+		parseSegments(lexer);
+		break;
+	
+	case SYMBOLS:
+		parseSymbols(lexer);
+		break;
+	
+	case RELS:
+		parseRels(lexer);
+		break;
+	
+	case DATA:
+		parseData(lexer);
+		break;
+	
+	case END:
+		/* cleanup i guess */
+		break;
+	
+	case ERROR:
+		UNREACHABLE;
+		break;
+	}
+
+	stage += 1;
+
+	return stage;
+}
+
 void parse(struct parser_t *parser)
 {
 	int page_size = 0x1000;
+	int stage = 0;
 	int content_size = 0;
 	char *buffer = (char *)malloc(page_size * sizeof(char));
 
@@ -79,18 +201,10 @@ void parse(struct parser_t *parser)
 	do{
 		content_size = wrap_fread(buffer, sizeof(char), page_size, parser->fd);
 		lexer = init_lexer(buffer, content_size);
+		
 		do{
-			token_next(lexer, token);
-			display_token(token);
-		}while(token->type != TOK_NULL);
-
-		// TODO: something like this
-		// parseMagic(lexer);
-		// parseMeta(lexer);
-		// parseSegments(lexer);
-		// parseSymbols(lexer);
-		// parseRels(lexer);
-		// parseData(lexer);
+			stage = tryParse(lexer, stage);
+		}while(stage != END);
 
 	}while(!feof(parser->fd));
 }
