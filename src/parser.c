@@ -96,8 +96,7 @@ void parseSegments(struct lexer_state *lexer)
 		getSymbol(lexer, &token);
 		strncpy(linker->segments[i].permissions, token.content, token.content_len);
 		
-		// TODO: see #NOTE(1)
-		// discardLine(lexer);
+		discardLine(lexer);
 	}
 
 	return;
@@ -121,8 +120,7 @@ void parseSymbols(struct lexer_state *lexer)
 		getSymbol(lexer, &token);
 		strncpy(linker->symbols[i].type, token.content, token.content_len);
 		
-		// TODO: see #NOTE(1)
-		// discardLine(lexer);
+		discardLine(lexer);
 	}
 }
 
@@ -143,8 +141,7 @@ void parseRels(struct lexer_state *lexer)
 		getSymbol(lexer, &token);
 		strncpy(linker->relocations[i].type, token.content, token.content_len);
 		
-		// TODO: see #NOTE(1)
-		// discardLine(lexer);
+		discardLine(lexer);
 	}
 }
 
@@ -268,9 +265,4 @@ void parse(struct parser_t *parser)
 
 		if a token is greater than 4096 bytes then this will
 		throw an error.
-	
-	#NOTE(1)
-		bug. it's not from the discardLine function but
-		if the line actually ends after the last consumed character then we basically
-		delete a line
 */

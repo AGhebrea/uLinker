@@ -139,7 +139,6 @@ void checkInvalid(struct lexer_state *lexer, struct token_t *token)
 
 void token_next (struct lexer_state *lexer, struct token_t *token, int retComment)
 {
-	// TODO: ?
 token_next_start_label:
 	trim_left(lexer);
 
@@ -175,7 +174,7 @@ token_next_start_label:
 
 void discardComments(struct lexer_state *lexer)
 {
-	while(CURRENT_CHAR (lexer) == '#'){
+	while(CURRENT_CHAR(lexer) == '#'){
 		while(CURRENT_CHAR(lexer) != '\n' && CURRENT_CHAR(lexer) != '\0' && CURRENT_CHAR(lexer) != EOF){
 			consume_token(lexer);
 		}
@@ -186,9 +185,18 @@ void discardComments(struct lexer_state *lexer)
 
 void discardLine(struct lexer_state *lexer)
 {
+	char ch;
+
+	ch = lexer->content[lexer->cursor - 1];
+
+	if(ch == '\n' || ch == '\0' || ch == EOF){
+		return;
+	}
 	while(CURRENT_CHAR(lexer) != '\n' && CURRENT_CHAR(lexer) != '\0' && CURRENT_CHAR(lexer) != EOF){
 		consume_token(lexer);
 	}
+
+	return;
 }
 
 // TODO: remove duplicate code if possible

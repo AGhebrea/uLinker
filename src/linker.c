@@ -26,32 +26,47 @@ void init_linker_state()
 
 void print_state(void)
 {
+	printf("\n\n############################################################");
+	printf("\n# META");
+	printf("\n############################################################");
 	printf("\nnr_segs: %d", linker->nr_segs);
 	printf("\nnr_syms: %d", linker->nr_syms);
 	printf("\nnr_rels: %d", linker->nr_rels);
 
+	printf("\n############################################################");
+	printf("\n# SEGMENTS");
+	printf("\n############################################################");
 	for(size_t i = 0; i < linker->nr_segs; ++i){
-		printf("\n\nname %s", linker->segments[i].name);
+		printf("\nname %s", linker->segments[i].name);
 		printf("\naddress %d", linker->segments[i].address);
 		printf("\noffset %d", linker->segments[i].offset);
 		printf("\npermissions %s", &(linker->segments[i].permissions));
 	}
 
+	printf("\n\n############################################################");
+	printf("\n# SYMBOLS");
+	printf("\n############################################################");
 	for(size_t i = 0; i < linker->nr_syms; ++i){
-		printf("\n\nname %s", linker->symbols[i].name);
+		printf("\nname %s", linker->symbols[i].name);
 		printf("\nvalue %d", linker->symbols[i].value);
 		printf("\nsegment %d", linker->symbols[i].segment);
 		printf("\ntype %s", &(linker->symbols[i].type));
 	}
 
+	printf("\n\n############################################################");
+	printf("\n# RELOCATIONS");
+	printf("\n############################################################");
 	for(size_t i = 0; i < linker->nr_rels; ++i){
-		printf("\n\nlocation %d", linker->relocations[i].location);
+		printf("\nlocation %d", linker->relocations[i].location);
 		printf("\nsegment %d", linker->relocations[i].segment);
 		printf("\nref %d", linker->relocations[i].ref);
 		printf("\ntype %s", &(linker->relocations[i].type));
 	}
 
-	printf("\n\nDATA:\n[%.*s]", linker->data_size, linker->data);
+	printf("\n\n############################################################");
+	printf("\n# DATA");
+	printf("\n############################################################");
+	printf("\nDATA:\n[%.*s]", linker->data_size, linker->data);
 
 	return;
 }
