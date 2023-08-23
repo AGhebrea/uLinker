@@ -14,10 +14,6 @@ int isend (struct lexer_state * lexer)
 {
 	if(lexer->cursor >= lexer->content_len) return true;
 
-	/* TODO(
-		think if you actually care about this.
-		you might if it were not a toy project
-	)*/
 	if(CURRENT_CHAR(lexer) == EOF || CURRENT_CHAR(lexer) == '\0'){
 		if(lexer->cursor < lexer->content_len){
 			DEBUG_INFO_FMT_STR(

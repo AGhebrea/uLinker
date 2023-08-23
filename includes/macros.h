@@ -7,7 +7,7 @@
 #define _STR(x) #x
 #define STR(x) _STR(x)
 #define LINE_FILE "[line " STR(__LINE__) " in "  __FILE__ "]"
-#define PRINT_LINE_FILE printf("[line %d in %s]\n", __LINE__, __FILE__)
+#define PRINT_LINE_FILE printf("\n\n[line %d in %s]\n", __LINE__, __FILE__)
 #define DEBUG_INFO_FMT_STR(expr, fmt_str, string)				\
 	do{									\
 		printf("\n[%d:%s]" #expr " = %g", __LINE__, __FILE__, expr);	\

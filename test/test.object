@@ -9,9 +9,9 @@ LINK
 .bss 	0x5000 	0x1900 	RW
 
 SYMBOL_1 	0x01 	0 	D
-SYMBOL_2 	0x02 	0 	U
+SYMBOL_2 	0x02 	1 	U
 
-0x1234 	0 	0	A4
+0x1234 	0 	1	A4
 
 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007
 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007

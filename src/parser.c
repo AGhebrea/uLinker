@@ -41,6 +41,15 @@ void raiseError(char *s)
 	exit(1);
 }
 
+long long int tokenToLongLongInt(struct token_t *token)
+{
+	if(token->type == TOK_HEX){
+		return strtol(token->content, NULL, 16);
+	}else{
+		return strtol(token->content, NULL, 10);
+	}
+}
+
 void parseMagic(struct lexer_state *lexer)
 {
 	struct token_t token;
@@ -53,14 +62,12 @@ void parseMagic(struct lexer_state *lexer)
 	return;
 }
 
-// BUG:
 void parseMeta(struct lexer_state *lexer)
 {
 	struct token_t token;
 
 	getNumber(lexer, &token);
 	linker->nr_segs = atoi(token.content);
-	init_linker_segments();
 
 	getNumber(lexer, &token);
 	linker->nr_syms = atoi(token.content);
@@ -81,38 +88,79 @@ void parseSegments(struct lexer_state *lexer)
 		strncpy(linker->segments[i].name, token.content, token.content_len);
 
 		getNumber(lexer, &token);
-		linker->segments[i].address = strtol(token.content, NULL, 16);
+		linker->segments[i].address = tokenToLongLongInt(&token);
 
 		getNumber(lexer, &token);
-		linker->segments[i].offset = strtol(token.content, NULL, 16);
+		linker->segments[i].offset = tokenToLongLongInt(&token);
 
 		getSymbol(lexer, &token);
 		strncpy(linker->segments[i].permissions, token.content, token.content_len);
 		
-		// todo: fix this bug
-		// it's not from the discardLine function but
-		// if the line actually ends after the last consumed character then we basically
-		// delete a line
+		// TODO: see #NOTE(1)
 		// discardLine(lexer);
 	}
 
 	return;
 }
 
-// TODO: the rest
 void parseSymbols(struct lexer_state *lexer)
 {
+	struct token_t token;
 
+	for(size_t i = 0; i < linker->nr_syms; ++i){
+		getSymbol(lexer, &token);
+		linker->symbols[i].name = (char *)malloc(token.content_len * sizeof(char));
+		strncpy(linker->symbols[i].name, token.content, token.content_len);
+
+		getNumber(lexer, &token);
+		linker->symbols[i].value = tokenToLongLongInt(&token);
+
+		getNumber(lexer, &token);
+		linker->symbols[i].segment = tokenToLongLongInt(&token);
+
+		getSymbol(lexer, &token);
+		strncpy(linker->symbols[i].type, token.content, token.content_len);
+		
+		// TODO: see #NOTE(1)
+		// discardLine(lexer);
+	}
 }
 
 void parseRels(struct lexer_state *lexer)
 {
+	struct token_t token;
 
+	for(size_t i = 0; i < linker->nr_rels; ++i){
+		getNumber(lexer, &token);
+		linker->relocations[i].location = tokenToLongLongInt(&token);
+
+		getNumber(lexer, &token);
+		linker->relocations[i].segment = tokenToLongLongInt(&token);
+
+		getNumber(lexer, &token);
+		linker->relocations[i].ref = tokenToLongLongInt(&token);
+
+		getSymbol(lexer, &token);
+		strncpy(linker->relocations[i].type, token.content, token.content_len);
+		
+		// TODO: see #NOTE(1)
+		// discardLine(lexer);
+	}
 }
 
 void parseData(struct lexer_state *lexer)
 {
+	struct token_t token;
 
+	do{
+		token_next(lexer, &token, RETURN_COMMENT_FALSE);
+		
+		if(token.content_len + linker->data_size > linker->data_capacity){
+			linker->data = (char *)realloc(linker->data, (linker->data_size + LINKER_DATA_SIZE) * sizeof(char));
+		}
+		strncpy(linker->data + linker->data_size, token.content, token.content_len);
+		linker->data_size += token.content_len;
+	}while(token.type != TOK_NULL);
 }
 
 // see #NOTE(0)
@@ -145,6 +193,9 @@ size_t wrap_fread(char *buffer, size_t size, size_t nmemb, FILE *fd)
 	return ret_size;
 }
 
+/*
+	TODO: add error handling.
+*/
 int tryParse(struct lexer_state *lexer, int stage)
 {
 	switch(stage){
@@ -154,6 +205,7 @@ int tryParse(struct lexer_state *lexer, int stage)
 	
 	case META:
 		parseMeta(lexer);
+		init_linker_state();
 		break;
 	
 	case SEGMENTS:
@@ -216,4 +268,9 @@ void parse(struct parser_t *parser)
 
 		if a token is greater than 4096 bytes then this will
 		throw an error.
+	
+	#NOTE(1)
+		bug. it's not from the discardLine function but
+		if the line actually ends after the last consumed character then we basically
+		delete a line
 */

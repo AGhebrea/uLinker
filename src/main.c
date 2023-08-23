@@ -20,6 +20,9 @@ int main()
 
 	print_meta();
 	print_segments();
+	print_symbols();
+	print_relocations();
+	print_data();
 
 	return 0;
 }

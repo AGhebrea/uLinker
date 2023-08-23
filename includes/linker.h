@@ -3,21 +3,31 @@
 
 #include <stddef.h>
 
-#define MAX_PERMISSIONS 4
+#define LINKER_DATA_SIZE 0x1000
+
+#define MAX_PERMISSIONS_LEN 4
+#define MAX_SYMBOL_TYPES_LEN 2
+#define MAX_RELOCATION_TYPES_LEN 3
 
 struct relocation_t{
-
+	size_t location;
+	size_t segment;
+	size_t ref;
+	char type[MAX_RELOCATION_TYPES_LEN];
 };
 
 struct symbol_t{
-
+	char *name;
+	long long int value;
+	size_t segment;
+	char type[MAX_SYMBOL_TYPES_LEN];
 };
 
 struct segment_t{
 	char *name;
 	size_t address;
 	size_t offset;
-	char permissions[MAX_PERMISSIONS];
+	char permissions[MAX_PERMISSIONS_LEN];
 };
 
 struct linker_t{
@@ -29,11 +39,17 @@ struct linker_t{
 	struct symbol_t *symbols;
 	struct relocation_t *relocations;
 	char *data;
+
+	size_t data_size;
+	size_t data_capacity;
 };
 
 void init_linker(void);
-void init_linker_segments(void);
+void init_linker_state(void);
 void print_meta(void);
 void print_segments(void);
+void print_symbols(void);
+void print_relocations(void);
+void print_data(void);
 
 #endif // _LINKER_H_
