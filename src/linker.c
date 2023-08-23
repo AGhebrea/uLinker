@@ -24,11 +24,18 @@ void init_linker_state()
 	return;
 }
 
+void linker_link(void)
+{
+	/* TODO first requirement */
+	UNIMPLEMENTED("linker_link");
+}
+
 void print_state(void)
 {
 	printf("\n\n############################################################");
 	printf("\n# META");
 	printf("\n############################################################");
+	printf("\nheader_size: %d", linker->header_size);
 	printf("\nnr_segs: %d", linker->nr_segs);
 	printf("\nnr_syms: %d", linker->nr_syms);
 	printf("\nnr_rels: %d", linker->nr_rels);
@@ -39,7 +46,7 @@ void print_state(void)
 	for(size_t i = 0; i < linker->nr_segs; ++i){
 		printf("\nname %s", linker->segments[i].name);
 		printf("\naddress %d", linker->segments[i].address);
-		printf("\noffset %d", linker->segments[i].offset);
+		printf("\noffset %d", linker->segments[i].size);
 		printf("\npermissions %s", &(linker->segments[i].permissions));
 	}
 
@@ -69,4 +76,15 @@ void print_state(void)
 	printf("\nDATA:\n[%.*s]", linker->data_size, linker->data);
 
 	return;
+}
+
+void print_data(void)
+{
+	for(size_t i = 0; i < linker->nr_segs; ++i){
+		printf("\n\n# SEGMENT: [%s]", linker->segments[i].name);
+		printf("\nDATA:\n[%.*s]", 
+			linker->segments[i].size, 
+			&linker->data[linker->segments[i].address]
+		);
+	}
 }

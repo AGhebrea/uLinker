@@ -26,11 +26,13 @@ struct symbol_t{
 struct segment_t{
 	char *name;
 	size_t address;
-	size_t offset;
+	size_t size;
 	char permissions[MAX_PERMISSIONS_LEN];
 };
 
 struct linker_t{
+	size_t header_size;
+
 	size_t nr_segs;
 	size_t nr_syms;
 	size_t nr_rels;
@@ -46,6 +48,8 @@ struct linker_t{
 
 void init_linker(void);
 void init_linker_state(void);
+void linker_link(void);
 void print_state(void);
+void print_data(void);
 
 #endif // _LINKER_H_

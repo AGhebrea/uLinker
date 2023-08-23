@@ -9,16 +9,22 @@
 #include "util.h"
 #include "macros.h"
 
+#define VERBOSE 1
+
 int main()
 {
 	struct parser_t *parser;
-	
+
 	init_linker();
 
 	parser = init_parser("./test/test.object");
 	parse(parser);
 
-	print_state();
+	if(VERBOSE){
+		print_state();
+		print_data();
+	}
+	linker_link();
 
 	return 0;
 }

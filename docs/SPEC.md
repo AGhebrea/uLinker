@@ -1,7 +1,7 @@
 # Definition of the "object format"
 ## Sketch:
 ```
-LINK  
+LINK header_size
 nr_segs nr_syms nr_rels  
 -- segments --  
 -- symbols --  
@@ -69,3 +69,8 @@ segment table, and there must be segment data for each ‘‘present’’ segme
 The length of the hex string is determined by the the defined length of the  
 segment; if the segment is 100 bytes long, the line of segment data is 200  
 characters, not counting the newline at the end.
+
+# Data
+The data is formatted by having 4 8-Byte values on each line.
+segment offsets and sizes are written assuming that those 
+bytes are concatenated into a single stream

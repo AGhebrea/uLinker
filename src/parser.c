@@ -59,6 +59,9 @@ void parseMagic(struct lexer_state *lexer)
 		raiseError("\nNo magic number found at start of file");
 	}
 
+	getNumber(lexer, &token);
+	linker->header_size = tokenToLongLongInt(&token);
+
 	return;
 }
 
@@ -67,13 +70,13 @@ void parseMeta(struct lexer_state *lexer)
 	struct token_t token;
 
 	getNumber(lexer, &token);
-	linker->nr_segs = atoi(token.content);
+	linker->nr_segs = tokenToLongLongInt(&token);
 
 	getNumber(lexer, &token);
-	linker->nr_syms = atoi(token.content);
+	linker->nr_syms = tokenToLongLongInt(&token);
 
 	getNumber(lexer, &token);
-	linker->nr_rels = atoi(token.content);
+	linker->nr_rels = tokenToLongLongInt(&token);
 
 	return;
 }
@@ -91,7 +94,7 @@ void parseSegments(struct lexer_state *lexer)
 		linker->segments[i].address = tokenToLongLongInt(&token);
 
 		getNumber(lexer, &token);
-		linker->segments[i].offset = tokenToLongLongInt(&token);
+		linker->segments[i].size = tokenToLongLongInt(&token);
 
 		getSymbol(lexer, &token);
 		strncpy(linker->segments[i].permissions, token.content, token.content_len);
@@ -160,7 +163,13 @@ void parseData(struct lexer_state *lexer)
 	}while(token.type != TOK_NULL);
 }
 
-// see #NOTE(0)
+/*
+	if the end of the buffer falls inside 
+	of a token then that token won't get parsed properly.
+
+	if a token is greater than 4096 bytes then this will
+	throw an error.
+*/
 size_t wrap_fread(char *buffer, size_t size, size_t nmemb, FILE *fd)
 {
 	size_t ret_size;
@@ -190,9 +199,6 @@ size_t wrap_fread(char *buffer, size_t size, size_t nmemb, FILE *fd)
 	return ret_size;
 }
 
-/*
-	TODO: add error handling.
-*/
 int tryParse(struct lexer_state *lexer, int stage)
 {
 	switch(stage){
@@ -254,15 +260,5 @@ void parse(struct parser_t *parser)
 		do{
 			stage = tryParse(lexer, stage);
 		}while(stage != END);
-
 	}while(!feof(parser->fd));
 }
-
-/*
-	#NOTE(0)
-		the issue is that if the end of the buffer falls inside 
-		of a token then that token won't get parsed properly.
-
-		if a token is greater than 4096 bytes then this will
-		throw an error.
-*/
