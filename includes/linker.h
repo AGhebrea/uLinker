@@ -46,10 +46,6 @@ struct linker_t{
 
 void init_linker(void);
 void init_linker_state(void);
-void print_meta(void);
-void print_segments(void);
-void print_symbols(void);
-void print_relocations(void);
-void print_data(void);
+void print_state(void);
 
 #endif // _LINKER_H_

@@ -18,6 +18,7 @@ int main()
 	parser = init_parser("./test/test.object");
 	parse(parser);
 
+	print_state();
 	print_meta();
 	print_segments();
 	print_symbols();
