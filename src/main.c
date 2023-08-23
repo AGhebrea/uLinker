@@ -19,11 +19,6 @@ int main()
 	parse(parser);
 
 	print_state();
-	print_meta();
-	print_segments();
-	print_symbols();
-	print_relocations();
-	print_data();
 
 	return 0;
 }
