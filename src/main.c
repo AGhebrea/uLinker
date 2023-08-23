@@ -9,10 +9,11 @@
 #include "util.h"
 #include "macros.h"
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 int main()
 {
+	char outfile[] = "./test/outfile.object";
 	struct parser_t *parser;
 
 	init_linker();
@@ -25,6 +26,7 @@ int main()
 		print_data();
 	}
 	linker_link();
+	linker_save(outfile);
 
 	return 0;
 }

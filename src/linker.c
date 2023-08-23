@@ -26,8 +26,46 @@ void init_linker_state()
 
 void linker_link(void)
 {
-	/* TODO first requirement */
-	UNIMPLEMENTED("linker_link");
+	/* there is actually nothing to do for now */
+
+	return;
+}
+
+void linker_save(char *filename)
+{
+	char magic_exec_number[] = "EXEC";
+	FILE *fd = fopen(filename, "w+");
+
+	// TODO: calculate header size
+
+	fprintf(fd, "%s\n", magic_exec_number);
+	for(size_t i = 0; i < linker->nr_segs; ++i){
+		fprintf(fd, 
+			"\n%s %d %d %s", 
+			linker->segments[i].name,
+			linker->segments[i].address,
+			linker->segments[i].size,
+			linker->segments[i].permissions
+		);
+	}
+	fwrite("\n", sizeof(char), 1, fd);
+	for(size_t i = 0; i < linker->nr_syms; ++i){
+		fprintf(fd, 
+			"\n%s %d %d %s", 
+			linker->symbols[i].name,
+			linker->symbols[i].value,
+			linker->symbols[i].segment,
+			linker->symbols[i].type
+		);
+	}
+	for(size_t i = 0; i < linker->nr_segs; ++i){
+		char *tmp;
+		tmp = &linker->data[linker->segments[i].address];
+		fwrite("\n\n", sizeof(char), 2, fd);
+		fwrite(tmp, sizeof(char), linker->segments[i].size, fd);
+	}
+
+	return;
 }
 
 void print_state(void)

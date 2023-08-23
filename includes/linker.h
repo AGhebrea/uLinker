@@ -49,6 +49,7 @@ struct linker_t{
 void init_linker(void);
 void init_linker_state(void);
 void linker_link(void);
+void linker_save(char *);
 void print_state(void);
 void print_data(void);
 
