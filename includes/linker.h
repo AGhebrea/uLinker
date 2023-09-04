@@ -28,6 +28,7 @@ struct segment_t{
 	size_t address;
 	size_t size;
 	char permissions[MAX_PERMISSIONS_LEN];
+	char *data;
 };
 
 struct linker_t{
@@ -40,7 +41,7 @@ struct linker_t{
 	struct segment_t *segments;
 	struct symbol_t *symbols;
 	struct relocation_t *relocations;
-	char *data;
+	char *data_buffer;
 
 	size_t data_size;
 	size_t data_capacity;
@@ -51,6 +52,6 @@ void init_linker_state(void);
 void linker_link(void);
 void linker_save(char *);
 void print_state(void);
-void print_data(void);
+// void print_segment_data(void);
 
 #endif // _LINKER_H_

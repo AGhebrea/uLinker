@@ -23,7 +23,6 @@ int main()
 
 	if(VERBOSE){
 		print_state();
-		print_data();
 	}
 	linker_link();
 	linker_save(outfile);

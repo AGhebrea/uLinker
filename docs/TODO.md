@@ -1,8 +1,10 @@
 [ ] 	Do additional error handling for the parse stages.
 	Things like size checking and whatever.
 	also free unused memory.
+	the .bss does not have any data and needs to be
+	allocated by the linker, i will not really check for 
+	junk in the input file since the file could be linked
+	like this. but it's still a candidate for error checking.
 
-[ ] 	the data format issue. decide what to do.
-
-[ ] 	the .bss does not have any data and needs to be
-	allocated by the linker.
+[ ] 	in linker.c/linker_save calculate header size and write it after
+	magic number.

@@ -1,14 +1,12 @@
 EXEC
 
-.text 0 64 RP
-.data 64 64 RWP
-.bss 128 128 RW
+.text 0x1000 0x40 RP
+.data 0x2000 0x40 RWP
+.bss 0x2044 0x80 RW
 
-SYMBOL_1 1 0 D
-SYMBOL_2 2 1 U
+SYMBOL_1 0x1 0 D
+SYMBOL_2 0x2 0x1 U
 
 textbeef1badb007deadbeef1badb007deadbeef1badb007deadbeef1badb007
 
 databeef1badb007deadbeef1badb007deadbeef1badb007deadbeef1badb007
-
-bss0beef1badb007deadbeef1badb007deadbeef1badb007deadbeef1badb007bss1beef1badb007deadbeef1badb007deadbeef1badb007deadbeef1badb007

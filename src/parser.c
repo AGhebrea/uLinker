@@ -16,6 +16,7 @@
 char *current_filename;
 
 extern struct linker_t *linker;
+extern int l_page_size;
 
 struct parser_t* init_parser(char *filename)
 {
@@ -156,9 +157,9 @@ void parseData(struct lexer_state *lexer)
 		token_next(lexer, &token, RETURN_COMMENT_FALSE);
 		
 		if(token.content_len + linker->data_size > linker->data_capacity){
-			linker->data = (char *)realloc(linker->data, (linker->data_size + LINKER_DATA_SIZE) * sizeof(char));
+			linker->data_buffer = (char *)realloc(linker->data_buffer, (linker->data_size + LINKER_DATA_SIZE) * sizeof(char));
 		}
-		strncpy(linker->data + linker->data_size, token.content, token.content_len);
+		strncpy(linker->data_buffer + linker->data_size, token.content, token.content_len);
 		linker->data_size += token.content_len;
 	}while(token.type != TOK_NULL);
 }
@@ -243,10 +244,9 @@ int tryParse(struct lexer_state *lexer, int stage)
 
 void parse(struct parser_t *parser)
 {
-	int page_size = 0x1000;
 	int stage = 0;
 	int content_size = 0;
-	char *buffer = (char *)malloc(page_size * sizeof(char));
+	char *buffer = (char *)malloc(l_page_size * sizeof(char));
 
 	struct lexer_state *lexer;
 	struct token_t *token;
@@ -254,7 +254,7 @@ void parse(struct parser_t *parser)
 	token = (struct token_t*)calloc(1, sizeof(struct token_t));
 
 	do{
-		content_size = wrap_fread(buffer, sizeof(char), page_size, parser->fd);
+		content_size = wrap_fread(buffer, sizeof(char), l_page_size, parser->fd);
 		lexer = init_lexer(buffer, content_size);
 		
 		do{
