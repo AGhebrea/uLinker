@@ -9,7 +9,7 @@
 #include "util.h"
 #include "macros.h"
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 int main()
 {
