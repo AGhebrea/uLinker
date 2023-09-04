@@ -1,3 +1,5 @@
+[ ] 	a general list implementation seems to be needed
+
 [ ] 	Keep track of .text, .data, and .bss segments 
 	as separate pointers inside linker struct.
 

@@ -6,6 +6,13 @@
 #include "macros.h"
 
 #define TEXT_START_ADDRESS 0x1000
+#define OUTPUT_SEGMENTS_N 3
+
+char *output_segment_names[OUTPUT_SEGMENTS_N] = {
+	".text",
+	".data",
+	".bss"
+}
 
 struct linker_t *linker;
 int l_page_size;
@@ -16,6 +23,15 @@ void init_linker(void)
 
 	linker = (struct linker_t*)calloc(1, sizeof(struct linker_t));
 	linker->data_buffer = (char *)malloc(LINKER_DATA_SIZE * sizeof(char));
+
+	linker->output_sections = (struct output_sections_t *)calloc(1, sizeof(struct output_sections_t));
+	linker->output_sections->segments = (struct segment_t *)malloc(OUTPUT_SEGMENTS_N * sizeof(struct segment_t));
+	
+	linker->output_sections->sym_size = 32;
+	linker->output_sections->symbol_table = (struct symbol_t *)malloc(linker->output_sections->sym_size * sizeof(struct symbol_t));
+
+	linker->output_sections->rel_size = 32;
+	linker->output_sections->relocations = (struct relocation_t *)malloc(linker->output_sections->rel_size * sizeof(struct relocation_t));
 
 	linker->data_capacity = LINKER_DATA_SIZE;
 	linker->data_size = 0;

@@ -31,6 +31,15 @@ struct segment_t{
 	char *data;
 };
 
+struct output_sections_t{
+	struct segment_t *segments;
+	struct symbol_t *symbol_table;
+	struct relocation_t *relocations;
+
+	size_t sym_size;
+	size_t rel_size;
+};
+
 struct linker_t{
 	size_t header_size;
 
@@ -42,6 +51,8 @@ struct linker_t{
 	struct symbol_t *symbols;
 	struct relocation_t *relocations;
 	char *data_buffer;
+
+	struct output_sections_t *output_sections;
 
 	size_t data_size;
 	size_t data_capacity;
