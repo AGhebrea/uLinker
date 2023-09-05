@@ -19,12 +19,16 @@ symbols with non-zero values, and add space of appropriate size to the .bss
 segment. Don’t worry about adjusting the symbol table entries, that’s in the  
 next chapter.  
 
-## [ ] REQ 2.2
+## [X] REQ 2.2
 handle arbitrary segments in input files, combining all segments with identical  
 names. A reasonable allocation strategy would be to put at 1000 the segments  
 with RP attributes, then starting at the next 1000 boundary RWP attributes,  
 then on a 4 boundary RW attributes. Allocate common blocks in .bss with  
 attribute RW.  
+
+## [ ] REQ 2.3
+implement a "module" structure inside of the linker sturct that will contain the file that is 
+currently being parsed.
 
 ## [ ] REQ 3.0
 Extend the linker to handle symbol name resolution. Make the linker read the  

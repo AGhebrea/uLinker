@@ -25,8 +25,11 @@ void init_linker(void)
 	linker->data_buffer = (char *)malloc(LINKER_DATA_SIZE * sizeof(char));
 
 	linker->output_sections = (struct output_sections_t *)calloc(1, sizeof(struct output_sections_t));
-	linker->output_sections->segments = (struct segment_t *)malloc(OUTPUT_SEGMENTS_N * sizeof(struct segment_t));
-	
+	linker->output_sections->segments = (struct segment_t *)calloc(OUTPUT_SEGMENTS_N, sizeof(struct segment_t));
+	linker->output_sections->segments[0].name = ".text";
+	linker->output_sections->segments[1].name = ".data";
+	linker->output_sections->segments[2].name = ".bss";
+
 	linker->output_sections->sym_size = 32;
 	linker->output_sections->symbol_table = (struct symbol_t *)malloc(linker->output_sections->sym_size * sizeof(struct symbol_t));
 
@@ -78,27 +81,74 @@ struct segment_t* get_segment_by_name(char *name)
 
 void segment_link(void)
 {
-	struct segment_t *segment, *tmp_segment;
-	int tmp;
+	// struct segment_t *segment, *tmp_segment;
+	// int tmp;
 
-	init_segments();
+	struct segment_t *tmp, *current;
 
-	segment = get_segment_by_name(".text");
-	segment->address = TEXT_START_ADDRESS;
-	strncpy(segment->permissions, "RP", 3);
+	for(size_t i = 0; i < linker->nr_segs; ++i){
+		tmp = &(linker->segments[i]);
+		tmp->data = &linker->data_buffer[tmp->address];
 
-	segment = get_segment_by_name(".data");
-	// todo: do a bitwise op for this
-	tmp = TEXT_START_ADDRESS + l_page_size;
-	segment->address = tmp - (tmp % l_page_size);
+		if(!strcmp(tmp->name, ".text")){
+			current = &(linker->output_sections->segments[0]);
+			current->address = 0x1000;
+			if(current->size + tmp->size > current->data_cap){
+				current->data = realloc(current->data, current->data_cap + l_page_size);
+			}
+			strncpy(current->data + current->size, tmp->data, tmp->size);
+			current->size += tmp->size;
+		}else if(!strcmp(tmp->name, ".data")){
+			current = &(linker->output_sections->segments[1]);
+			current->address = 0x1000;
+			if(current->size + tmp->size > current->data_cap){
+				current->data = realloc(current->data, current->data_cap + l_page_size);
+			}
+			strncpy(current->data + current->size, tmp->data, tmp->size);
+			current->size += tmp->size;
+		}else{
+			current = &(linker->output_sections->segments[2]);
+			current->address = 0x1000;
+			if(current->size + tmp->size > current->data_cap){
+				current->data = realloc(current->data, current->data_cap + l_page_size);
+			}
+			strncpy(current->data + current->size, tmp->data, tmp->size);
+			current->size += tmp->size;
+		}
+	}
 
-	tmp_segment = get_segment_by_name(".bss");
-	// same here
-	tmp = segment->address + segment->size;
-	tmp_segment->address = tmp + 4 - (tmp % 4);
+	tmp = &(linker->output_sections->segments[0]);
+	current = &(linker->output_sections->segments[1]);
+	current->address = tmp->address + tmp->size + 0x1000 - (tmp->address + tmp->size) % 0x1000;
 
-	return;
+	tmp = &(linker->output_sections->segments[1]);
+	current = &(linker->output_sections->segments[2]);
+	current->address = tmp->address + tmp->size + 4 - (tmp->address + tmp->size) % 4;
+
+	return; 
 }
+
+	// init_segments();
+
+	// for req_2_2 we must iterate trough the segments and insert .text
+	// at out[0], data at out 1 and so on.
+
+	// segment = get_segment_by_name(".text");
+	// segment->address = TEXT_START_ADDRESS;
+	// strncpy(segment->permissions, "RP", 3);
+
+	// segment = get_segment_by_name(".data");
+	// // todo: do a bitwise op for this
+	// tmp = TEXT_START_ADDRESS + l_page_size;
+	// segment->address = tmp - (tmp % l_page_size);
+
+	// tmp_segment = get_segment_by_name(".bss");
+	// // same here
+	// tmp = segment->address + segment->size;
+	// tmp_segment->address = tmp + 4 - (tmp % 4);
+
+	// return;
+// }
 
 // here we would actually have to increment the output .bss segment
 // we will fix it when we know what exactly we will have to do.
@@ -133,13 +183,13 @@ void linker_save(char *filename)
 	// TODO: calculate header size
 
 	fprintf(fd, "%s\n", magic_exec_number);
-	for(size_t i = 0; i < linker->nr_segs; ++i){
+	for(size_t i = 0; i < OUTPUT_SEGMENTS_N; ++i){
 		fprintf(fd, 
 			"\n%s %#x %#x %s", 
-			linker->segments[i].name,
-			linker->segments[i].address,
-			linker->segments[i].size,
-			linker->segments[i].permissions
+			linker->output_sections->segments[i].name,
+			linker->output_sections->segments[i].address,
+			linker->output_sections->segments[i].size,
+			linker->output_sections->segments[i].permissions
 		);
 	}
 	fwrite("\n", sizeof(char), 1, fd);
@@ -152,10 +202,10 @@ void linker_save(char *filename)
 			linker->symbols[i].type
 		);
 	}
-	for(size_t i = 0; i < linker->nr_segs; ++i){
-		if(strcmp(linker->segments[i].name, ".bss")){
+	for(size_t i = 0; i < OUTPUT_SEGMENTS_N; ++i){
+		if(strcmp(linker->output_sections->segments[i].name, ".bss")){
 			fwrite("\n\n", sizeof(char), 2, fd);
-			fwrite(linker->segments[i].data, sizeof(char), linker->segments[i].size, fd);
+			fwrite(linker->output_sections->segments[i].data, sizeof(char), linker->output_sections->segments[i].size, fd);
 		}
 	}
 

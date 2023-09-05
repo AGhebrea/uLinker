@@ -1,10 +1,11 @@
 LINK 0x9e
 
-3 	3 	1
+4 	3 	1
 
 .text 	0x0000 	0x0040 	RP
-.data 	0x0040 	0x0040 	RWP
-.bss 	0x0080 	0x0080 	RW
+.text 	0x0040 	0x0040	RP
+.data 	0x0080 	0x0040 	RWP
+.bss 	0x00c0 	0x0080 	RW
 
 SYMBOL_1 	0x01 	0 	D
 SYMBOL_2 	0x02 	1 	U
@@ -13,7 +14,8 @@ SYMBOL_3 	0x12 	1 	U
 
 0x1234 	0 	1	A4
 
-textbeef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007
+text1eef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007
+text2eef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007
 databeef1badb007 deadbeef1badb007 deadbeef1badb007 deadbeef1badb007
 1337133713371337 1337133713371337 1337133713371337 1337133713371337 
 1337133713371337 1337133713371337 1337133713371337 1337133713371337 

@@ -29,6 +29,7 @@ struct segment_t{
 	size_t size;
 	char permissions[MAX_PERMISSIONS_LEN];
 	char *data;
+	size_t data_cap;
 };
 
 struct output_sections_t{
