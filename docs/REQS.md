@@ -13,7 +13,7 @@ be sure you have a data structure that will let you determine what address
 each segment in each input file has been assigned, since you’ll need that  
 for project in subsequent chapters.  
 
-## [ ] REQ 2.1
+## [X] REQ 2.1
 Implement Unix-style common blocks. That is, scan the symbol table for undefined  
 symbols with non-zero values, and add space of appropriate size to the .bss  
 segment. Don’t worry about adjusting the symbol table entries, that’s in the  

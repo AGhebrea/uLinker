@@ -12,7 +12,7 @@ char *output_segment_names[OUTPUT_SEGMENTS_N] = {
 	".text",
 	".data",
 	".bss"
-}
+};
 
 struct linker_t *linker;
 int l_page_size;
@@ -76,32 +76,51 @@ struct segment_t* get_segment_by_name(char *name)
 	return NULL;
 }
 
-// TODO: do another DS that keeps track of segment allocations
-// since most stuff will be easier if we knew where the segs are
-void linker_link(void)
+void segment_link(void)
 {
 	struct segment_t *segment, *tmp_segment;
 	int tmp;
 
 	init_segments();
 
-	/* -- SEGMENT ALLOCATIONS  -------------------- */
-	/* .text */
 	segment = get_segment_by_name(".text");
 	segment->address = TEXT_START_ADDRESS;
 	strncpy(segment->permissions, "RP", 3);
 
-	/* .data */
 	segment = get_segment_by_name(".data");
 	// todo: do a bitwise op for this
 	tmp = TEXT_START_ADDRESS + l_page_size;
 	segment->address = tmp - (tmp % l_page_size);
 
-	/* .bss */
 	tmp_segment = get_segment_by_name(".bss");
 	// same here
 	tmp = segment->address + segment->size;
 	tmp_segment->address = tmp + 4 - (tmp % 4);
+
+	return;
+}
+
+// here we would actually have to increment the output .bss segment
+// we will fix it when we know what exactly we will have to do.
+void symbol_link(void)
+{
+	struct symbol_t *tmp;
+	struct segment_t *seg;
+
+	for(size_t i = 0; i < linker->nr_syms; ++i){
+		tmp = &(linker->symbols[i]);
+		if(strchr(tmp->type, 'U') != NULL){
+			// see note above
+			seg = get_segment_by_name(".bss");
+			seg->size += tmp->value;
+		}
+	}
+}
+
+void linker_link(void)
+{
+	segment_link();
+	symbol_link();
 
 	return;
 }
