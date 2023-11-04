@@ -51,20 +51,6 @@ void init_linker_state()
 	return;
 }
 
-// another solution, maybe a better one would be to have some sort of
-// init fun_ptr inside the segment_t definition and a special_flag which
-// signals that the segment is treated in a special way.
-// todo: see if that is a sane implemenatation later
-void init_segments()
-{
-	struct segment_t *tmp;
-
-	for(size_t i = 0; i < linker->nr_segs; ++i){
-		tmp = &(linker->segments[i]);
-		tmp->data = &linker->data_buffer[tmp->address];
-	}
-}
-
 struct segment_t* get_segment_by_name(char *name)
 {
 	struct segment_t *tmp;
@@ -81,9 +67,6 @@ struct segment_t* get_segment_by_name(char *name)
 
 void segment_link(void)
 {
-	// struct segment_t *segment, *tmp_segment;
-	// int tmp;
-
 	struct segment_t *tmp, *current;
 
 	for(size_t i = 0; i < linker->nr_segs; ++i){
@@ -128,30 +111,6 @@ void segment_link(void)
 	return; 
 }
 
-	// init_segments();
-
-	// for req_2_2 we must iterate trough the segments and insert .text
-	// at out[0], data at out 1 and so on.
-
-	// segment = get_segment_by_name(".text");
-	// segment->address = TEXT_START_ADDRESS;
-	// strncpy(segment->permissions, "RP", 3);
-
-	// segment = get_segment_by_name(".data");
-	// // todo: do a bitwise op for this
-	// tmp = TEXT_START_ADDRESS + l_page_size;
-	// segment->address = tmp - (tmp % l_page_size);
-
-	// tmp_segment = get_segment_by_name(".bss");
-	// // same here
-	// tmp = segment->address + segment->size;
-	// tmp_segment->address = tmp + 4 - (tmp % 4);
-
-	// return;
-// }
-
-// here we would actually have to increment the output .bss segment
-// we will fix it when we know what exactly we will have to do.
 void symbol_link(void)
 {
 	struct symbol_t *tmp;
@@ -160,7 +119,7 @@ void symbol_link(void)
 	for(size_t i = 0; i < linker->nr_syms; ++i){
 		tmp = &(linker->symbols[i]);
 		if(strchr(tmp->type, 'U') != NULL){
-			// see note above
+			// incr output bss
 			seg = get_segment_by_name(".bss");
 			seg->size += tmp->value;
 		}
@@ -259,15 +218,3 @@ void print_state(void)
 
 	return;
 }
-
-// todo : remove
-// void print_segment_data(void)
-// {
-// 	for(size_t i = 0; i < linker->nr_segs; ++i){
-// 		printf("\n\n# SEGMENT: [%s]", linker->segments[i].name);
-// 		printf("\nDATA:\n[%.*s]", 
-// 			linker->segments[i].size, 
-// 			linker->segments[i].data
-// 		);
-// 	}
-// }

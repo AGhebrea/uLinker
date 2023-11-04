@@ -5,15 +5,15 @@
 
 #include "lexer.h"
 
-#define LIST_SIZE 0x1000
-
-struct token_list_t{
+struct list_t{
 	size_t size;
 	size_t capacity;
-	struct token_t **content;
+	size_t memb_size;
+	void *data;
+	// void (*append)(struct list_t *, void *);
 };
 
-void append_token(struct token_list_t *, struct token_t *);
-struct token_list_t *init_list(void);
+struct list_t *init_list(size_t);
+void list_t_append(struct list_t *, void *);
 
 #endif // _UTIL_H_
