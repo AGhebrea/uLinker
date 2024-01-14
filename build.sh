@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+SUBA=test*
+
 BUILD_DIR="./build"
 BUILD_NAME="$BUILD_DIR/uLinker"
 SOURCE_DIR="./src"
